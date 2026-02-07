@@ -42,3 +42,33 @@ export const createPost = async (req, res) => {
     res.status(500).json({ message: 'Failed to create post' });
   }
 };
+
+export const deletePost = async (req, res, next) => {
+  const { id } = req.params;
+
+  const post = await Post.findOne({ _id: id, deletedAt: null });
+
+  if (!post) {
+    return res.status(404).json({
+      success: false,
+      message: 'Post not found'
+    });
+  }
+
+  // Check if user is the author
+  if (post.author.toString() !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      message: 'Not authorized to delete this post'
+    });
+  }
+
+  // Soft delete
+  await post.softDelete();
+
+  res.status(200).json({
+    success: true,
+    message: 'Post deleted successfully',
+    data: {}
+  });
+};
