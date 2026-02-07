@@ -72,3 +72,65 @@ Create a `.env` file in the root directory with the following variables:
 ```
 
 The API will be available at `http://localhost:5000`
+
+
+## Sample API Requests
+
+### 1. Register User
+
+- **Endpoint**: `POST /api/auth/register`
+- **Request Body**:
+
+    ```javascript
+        {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "password": "password123"
+        }
+    ```
+
+### 2. Login User
+
+- **Endpoint**: `POST /api/auth/login`
+- **Request Body**:
+
+    ```javascript
+        {
+            "email": "john@example.com",
+            "password": "password123"
+        }
+    ```
+
+### 3. Create Post
+
+- **Endpoint**: `POST /api/posts`
+- **Headers**: Authorization: Bearer <your_jwt_token>
+- **Request Body**:
+
+    ```javascript
+        {
+            "title": "My First Post",
+            "content": "This is the description of my first post.",
+            "status": "published",
+            "tags": ["nodejs", "express", "mongodb"]
+        }
+    ```
+
+### 4. Get All Posts
+
+- **Endpoint**: `GET /api/posts`
+- **Headers**: `Authorization: Bearer <token>` (optional)
+- **Query Parameters**:
+    `page` (default: 1): Page number for pagination
+    `limit` (default: 10, max: 100): Number of posts per page
+- **Examples**:
+  
+```javascript
+    GET /api/posts?page=1&limit=10
+    GET /api/posts?search=nodejs
+```
+
+### 5. Delete Post (Soft Delete)
+
+- **Endpoint**: `DELETE /api/posts/:id`
+- **Headers**: `Authorization: Bearer <token>`
