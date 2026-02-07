@@ -9,6 +9,13 @@ const postSchema = new mongoose.Schema({
         minlength: [3, 'Title must be at least 3 characters long'],
         maxlength: [200, 'Title cannot exceed 200 characters']
     },
+    slug: {
+        type: String,
+        unique: true,
+        lowercase: true,
+        index: true,
+        required: true
+    },
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

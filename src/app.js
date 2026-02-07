@@ -33,11 +33,11 @@ app.use(corsMiddleware);
 
 app.options('*', corsMiddleware);
 
-// To parse form data in POST request body
-app.use(express.urlencoded({ extended: true }));
-
 // To parse incoming JSON in POST request body
 app.use(express.json({ limit: '2mb' }));
+
+// To parse form data in POST request body
+app.use(express.urlencoded({ extended: true }));
 
 // Use cookieParser middleware
 app.use(cookieParser());
@@ -48,6 +48,16 @@ app.use(passport.initialize());
 
 // Authentication-related routes
 app.use('/api/auth', userRoutes);
+
+
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 //Authenticate Routes Below this middleware
 app.use(isLoggedin);
