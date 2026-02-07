@@ -1,6 +1,8 @@
 import express from 'express';
 import handleAsyncErr from '../utils/catchAsync.js'
+import isLoggedin from '../middleware/isLoggedin.js';
 const router = express.Router();
+
 
 const {
   getPosts,
@@ -19,9 +21,9 @@ router.get('/:slug', handleAsyncErr(getPost));
 
 
 // Protected routes
-router.post('/', protect, createPostValidation, validate, handleAsyncErr(createPost));
-router.put('/:id', protect, updatePostValidation, validate, handleAsyncErr(updatePost));
-router.delete('/:id', protect, handleAsyncErr(deletePost));
+router.post('/', isLoggedin, createPostValidation, validate, handleAsyncErr(createPost));
+router.put('/:id', isLoggedin, updatePostValidation, validate, handleAsyncErr(updatePost));
+router.delete('/:id', isLoggedin, handleAsyncErr(deletePost));
 
 
 export default router;

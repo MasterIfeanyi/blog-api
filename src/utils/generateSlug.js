@@ -1,8 +1,7 @@
 import slugify from 'slugify';
-import { Product } from '../models/product.model.js';
 
 // Helper function to generate unique slugs
-async function generateUniqueSlug(name) {
+async function generateUniqueSlug(name, Model) {
     // Create the base slug once
     const baseSlug = slugify(name, { lower: true, strict: true });
 
@@ -10,7 +9,7 @@ async function generateUniqueSlug(name) {
     let count = 1;
 
     // Check if the slug already exists
-    let existingSlug = await Product.findOne({ slug });
+    let existingSlug = await Model.findOne({ slug });
 
     // Keep modifying the slug until it becomes unique
     while (existingSlug) {
@@ -18,7 +17,7 @@ async function generateUniqueSlug(name) {
         // book-1
         // book-2
         // book-3
-        existingSlug = await Product.findOne({ slug });
+        existingSlug = await Model.findOne({ slug });
         count++;
     }
 

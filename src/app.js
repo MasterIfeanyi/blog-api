@@ -5,15 +5,10 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import throttle from './middleware/throttle.js';
-import morgan from 'morgan';
 import isLoggedin from './utils/isLoggedin.js';
 
 import userRoutes from './routes/user.routes.js';
-import paymentRoutes from './routes/payment.routes.js';
-import cartRoutes from './routes/cart.routes.js';
-import orderRoutes from './routes/order.routes.js';
-import favouriteProductRoutes from './routes/favoriteProduct.routes.js';
-import productRoutes from './routes/product.routes.js'
+
 
 import errorHandler from './middleware/errorHandler.js';
 import httpLogger from './middlewares/httpLogger.js';
@@ -34,6 +29,10 @@ app.use(corsMiddleware);
 
 app.options('*', corsMiddleware);
 
+app.use(throttle); 
+app.use('/api/', apiLimiter);
+
+
 // To parse incoming JSON in POST request body
 app.use(express.json({ limit: '2mb' }));
 
@@ -48,8 +47,6 @@ app.use(passport.initialize());
 
 // public routes
 app.use('/api/posts', postRoutes); 
-
-// Authentication-related routes
 app.use('/api/auth', userRoutes);
 
 

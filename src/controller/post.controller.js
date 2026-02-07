@@ -1,17 +1,7 @@
-import bcrypt from 'bcrypt';
-import { generateAccessToken, generateRefreshToken } from '../auth/auth.js'
-import 'dotenv/config';
-import jwt from 'jsonwebtoken';
-import { refreshSecretKey } from '../auth/config.js';
-import { signUpSchema, signInSchema } from '../validators/authValidators.js';
-import { setRefreshToken, setAccessToken, removeAccessToken, removeRefreshToken } from '../utils/authCookies.js';
-import axios from 'axios'
 import slugify from 'slugify';
 import {Post} from '../models/post.model.js';
+import generateUniqueSlug from '../utils/generateSlug.js';
 
-
-// POST - Create post (auth required) 
-// /api/posts
 
 
 // POST - Create post (auth required) 
@@ -34,18 +24,11 @@ export const createPost = async (req, res, next) => {
     });
   }
 
-  const baseSlug = slugify(title, { lower: true, strict: true });
-
-  let slug = baseSlug;
-  let count = 1;
-
-  while (await Post.exists({ slug })) {
-    slug = `${baseSlug}-${count++}`;
-  }
+  const baseSlug = generateUniqueSlug(title, "Post")
 
   const post = await Post.create({
     title,
-    slug,
+    slug: baseSlug,
     content,
     tags,
     status: status || 'draft',
@@ -143,7 +126,11 @@ export const updatePost = async (req, res, next) => {
   }
 
   // Update fields
-  if (title) post.title = title;
+  if (title) {
+    post.title = title;
+    // If title changes, regenerate slug
+    post.slug = await generateUniqueSlug(title, "Post");
+  }
   if (content) post.content = content;
   if (status) post.status = status;
   if (tags) post.tags = tags;
