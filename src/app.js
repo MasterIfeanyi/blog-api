@@ -20,9 +20,7 @@ import httpLogger from './middlewares/httpLogger.js';
 
 
 // Load environment variables if not in production
-if (process.env.NODE_ENV !== 'production') {
-    dotenv.config();
-}
+dotenv.config();
 
 // Initialize Express application
 const app = express();
