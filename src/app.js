@@ -16,6 +16,8 @@ import favouriteProductRoutes from './routes/favoriteProduct.routes.js';
 import productRoutes from './routes/product.routes.js'
 
 import errorHandler from './middleware/errorHandler.js';
+import httpLogger from './middlewares/httpLogger.js';
+
 
 // Load environment variables if not in production
 if (process.env.NODE_ENV !== 'production') {
@@ -25,10 +27,10 @@ if (process.env.NODE_ENV !== 'production') {
 // Initialize Express application
 const app = express();
 
+
 // Use Morgan for logging HTTP requests
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
+app.use(httpLogger);
+
 // Use the CORS middleware
 app.use(corsMiddleware);
 
