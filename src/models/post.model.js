@@ -24,7 +24,7 @@ const postSchema = new mongoose.Schema({
     content: {
         type: String,
         required: [true, 'Content is required'],
-        minlength: [10, 'Content must be at least 10 characters long']
+        minlength: [100, 'Content must be at least 10 characters long']
     },
     status: {
         type: String,

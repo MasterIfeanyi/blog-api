@@ -26,8 +26,9 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 
 // Use Morgan for logging HTTP requests
-app.use(morgan('dev'));
-
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
 // Use the CORS middleware
 app.use(corsMiddleware);
 
@@ -54,7 +55,7 @@ app.use('/api/auth', userRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'API is running',
+    message: 'Server is running',
     timestamp: new Date().toISOString()
   });
 });
