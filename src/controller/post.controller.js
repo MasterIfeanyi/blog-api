@@ -193,3 +193,68 @@ export const getPosts = async (req, res, next) => {
     }
   });
 };
+
+
+export const getPostsWithFilter = async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const { search, tag, author, status } = req.query;
+  
+  const { skip, limit: paginationLimit } = paginate(page, limit);
+  
+  // Build query object
+  const query = { deletedAt: null };
+  
+  // Status filter - only for authenticated users
+  if (status) {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required to filter by status'
+      });
+    }
+    query.status = status;
+  } else {
+    // For non-authenticated users or when status not specified, show only published
+    query.status = 'published';
+  }
+  
+  // Search filter (title or content)
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { content: { $regex: search, $options: 'i' } }
+    ];
+  }
+  
+  // Tag filter
+  if (tag) {
+    query.tags = tag.toLowerCase();
+  }
+  
+  // Author filter
+  if (author) {
+    query.author = author;
+  }
+  
+  // Get posts with filters
+  const posts = await Post.find(query)
+    .populate('author', 'name email')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(paginationLimit);
+  
+  // Get total count for pagination metadata
+  const total = await Post.countDocuments(query);
+  
+  res.status(200).json({
+    success: true,
+    data: posts,
+    pagination: {
+      page,
+      limit: paginationLimit,
+      total,
+      totalPages: Math.ceil(total / paginationLimit)
+    }
+  });
+};
