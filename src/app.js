@@ -46,6 +46,8 @@ app.use(cookieParser());
 // Initialize Passport for authentication
 app.use(passport.initialize());
 
+// public routes
+app.use('/api/posts', postRoutes); 
 
 // Authentication-related routes
 app.use('/api/auth', userRoutes);

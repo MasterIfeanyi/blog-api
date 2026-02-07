@@ -195,6 +195,8 @@ export const getPosts = async (req, res, next) => {
 };
 
 
+// GET - Posts with filters (search, tag, author, status) with pagination
+// /api/posts?search=keyword&tag=tagname&author=authorname&status=published
 export const getPostsWithFilter = async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;

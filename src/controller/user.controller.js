@@ -9,7 +9,91 @@ import { setRefreshToken, setAccessToken, removeAccessToken, removeRefreshToken 
 import axios from 'axios'
 
 
+//Sign Up Controller Function
+export const signUpUser = async (req, res) => {
+  const { email, password } = req.body;
 
+  // Check if user already exists
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    return res.status(409).json({ 
+      success: false,
+      message: 'User with this email already exists' 
+    });
+  }
+
+  // Create a new user
+  const newUser = new User({
+    email,
+    password: hashedPassword
+  });
+
+  // Save the user to the database
+  await newUser.save();
+
+  // Generate tokens
+  const accessToken = generateAccessToken(newUser);
+  const refreshToken = generateRefreshToken(newUser);
+
+  // Set cookies
+  setAccessToken(res, accessToken);
+  setRefreshToken(res, refreshToken);
+
+  // Respond with success message
+  res.status(200).json({ 
+    success: true,
+    message: 'User registered successfully',
+    data: {
+      email: newUser.email
+    }
+  });
+}
+
+//Sign In Controller Function
+export const signInUser = async (req, res) => {
+  // No need for validation here - it's already handled by middleware
+  
+  const { email, password } = req.body;
+
+  // Check if the user exists by their email
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ 
+      success: false,
+      message: 'User not found' 
+    });
+  }
+
+  // Compare the provided password with the hashed password in the database
+  const passwordMatch = await user.comparePassword(password);
+
+  if (passwordMatch) {
+    // Passwords match, generate JWT token
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    //set cookies
+    setAccessToken(res, accessToken);
+    setRefreshToken(res, refreshToken);
+
+    return res.status(200).json({ 
+      success: true,
+      message: 'Sign In successful', 
+      data: {
+        email: user.email 
+      }
+    });
+  } else {
+    // Passwords don't match
+    return res.status(400).json({ 
+      success: false,
+      message: 'Invalid email or password', 
+      code: 'INVALID_EMAIL_OR_PASSWORD' 
+    });
+  }
+}
 
 
 //Log out Controller Function
