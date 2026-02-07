@@ -15,6 +15,8 @@ import orderRoutes from './routes/order.routes.js';
 import favouriteProductRoutes from './routes/favoriteProduct.routes.js';
 import productRoutes from './routes/product.routes.js'
 
+import errorHandler from './middleware/errorHandler.js';
+
 // Load environment variables if not in production
 if (process.env.NODE_ENV !== 'production') {
     dotenv.config();
@@ -52,17 +54,7 @@ app.use(isLoggedin);
 
 
 // Error handling middleware
-app.use((err, res) => {
-    // Extract status and message from the error object, defaulting to 500 and a generic message
-    const status = err.status || 500;
-    const message = err.message || 'Something went wrong';
-
-    // Log the error details to the console for debugging
-    console.error(err);
-
-    // Send the error response to the client
-    res.status(status).json({ message });
-});
+app.use(errorHandler);
 
 
 export default app;

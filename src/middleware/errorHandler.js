@@ -1,47 +1,51 @@
-// create centralised error handling middleware
+  // create centralised error handling middleware
 
-const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+  const errorHandler = (err, req, res, next) => {
+   
 
-  // Log error for debugging
-  console.error(err);
+    // Default error response
+    let statusCode = err.statusCode || 500;
+    let message = err.message || 'Server Error';
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
-  }
+    // Log error for debugging
+    console.error(err);
 
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    error = { message, statusCode: 400 };
-  }
+    // Mongoose bad ObjectId
+    if (err.name === 'CastError') {
+      message = 'Resource not found';
+      statusCode = 404;
+    }
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map(val => val.message);
-    const message = messages.join(', ');
-    error = { message, statusCode: 400 };
-  }
+    // Mongoose duplicate key
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+      message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      statusCode = 400;
+    }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { message, statusCode: 401 };
-  }
+    // Mongoose validation error
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      message = messages.join(', ');
+      statusCode = 400;
+    }
 
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { message, statusCode: 401 };
-  }
+    // JWT errors 401, means using an expired or invalid access token
+    if (err.name === 'JsonWebTokenError') {
+      message = 'Invalid token';
+      statusCode = 401;
+    }
 
-  res.status(error.statusCode || 500).json({
-    success: false,
-    error: error.message || 'Server Error'
-  });
-};
+    // 401 means using an expired or invalid access token
+    if (err.name === 'TokenExpiredError') {
+      message = 'Token expired';
+      statusCode = 401;
+    }
 
-module.exports = errorHandler;
+    res.status(statusCode || 500).json({
+      success: false,
+      error: message
+    });
+  };
+
+  module.exports = errorHandler;
