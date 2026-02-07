@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const postSchema = new mongoose.Schema({
+const postSchema = new Schema({
     title: {
         type: String,
         required: [true, 'Title is required'],
@@ -31,11 +31,12 @@ const postSchema = new mongoose.Schema({
         enum: ['draft', 'published'],
         default: 'draft'
     },
-    tags: [{
-        type: String,
+    tags: {
+        type: [String],
+        default: [],
         trim: true,
         lowercase: true
-    }],
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -55,6 +56,19 @@ postSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+
+// Method to soft delete a post
+postSchema.methods.softDelete = function() {
+  this.deletedAt = Date.now();
+  return this.save();
+};
+
+
+// Index for better query performance
+postSchema.index({ author: 1, status: 1 });
+postSchema.index({ slug: 1 });
+postSchema.index({ tags: 1 });
 
 
 module.exports = mongoose.model('Post', postSchema);
