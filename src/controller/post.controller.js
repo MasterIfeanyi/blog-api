@@ -10,39 +10,58 @@ import slugify from 'slugify';
 import {Post} from '../models/post.model.js';
 
 
+// POST - Create post (auth required) 
+// /api/posts
 
-export const createPost = async (req, res) => {
-  try {
-    const { title, content, status, tags } = req.body;
 
-    if (!title || !content) {
-      return res.status(400).json({ message: 'Title and content are required' });
-    }
-
-    const baseSlug = slugify(title, { lower: true, strict: true });
-
-    let slug = baseSlug;
-    let count = 1;
-
-    while (await Post.exists({ slug })) {
-      slug = `${baseSlug}-${count++}`;
-    }
-
-    const post = await Post.create({
-      title,
-      slug,
-      content,
-      tags,
-      status: status || 'draft',
-      author: req.user._id
+// POST - Create post (auth required) 
+// /api/posts
+export const createPost = async (req, res, next) => {
+  // Check if user is authenticated
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required to create a post'
     });
-
-    res.status(201).json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to create post' });
   }
+
+  const { title, content, status, tags } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({
+      success: false,
+      message: 'Title and content are required'
+    });
+  }
+
+  const baseSlug = slugify(title, { lower: true, strict: true });
+
+  let slug = baseSlug;
+  let count = 1;
+
+  while (await Post.exists({ slug })) {
+    slug = `${baseSlug}-${count++}`;
+  }
+
+  const post = await Post.create({
+    title,
+    slug,
+    content,
+    tags,
+    status: status || 'draft',
+    author: req.user.id
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Post created successfully',
+    data: post
+  });
 };
 
+
+// DELETE - Soft delete (author only) 
+// /api/posts/:id  
 export const deletePost = async (req, res, next) => {
   const { id } = req.params;
 
@@ -73,28 +92,98 @@ export const deletePost = async (req, res, next) => {
   });
 };
 
+
 export const getPost = async (req, res, next) => {
+    
+    const { slug } = req.params;  // Not 'id', it's 'slug'
+  
+    const post = await Post.findOne({ slug: slug, deletedAt: null })
+        .populate('author', 'name email');
+    
+    if (!post) {
+        return res.status(404).json({
+            success: false,
+            message: 'Post not found'
+        });
+    }
+  
+    res.status(200).json({
+        success: true,
+        data: post
+    });
+};
+
+// PUT - Update post (author only) 
+// /api/posts/:id  
+export const updatePost = async (req, res, next) => {
   const { id } = req.params;
-  
-  // Try to find by ID first, then by slug
-  let post = await Post.findOne({ _id: id, deletedAt: null })
-    .populate('author', 'name email')
-    .catch(() => null);
-  
-  if (!post) {
-    post = await Post.findOne({ slug: id, deletedAt: null })
-      .populate('author', 'name email');
-  }
-  
+  const { title, content, status, tags } = req.body;
+
+  let post = await Post.findOne({ _id: id, deletedAt: null });
+
   if (!post) {
     return res.status(404).json({
       success: false,
       message: 'Post not found'
     });
   }
+
+  // Check if user is the author
+  if (post.author.toString() !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      message: 'Not authorized to update this post'
+    });
+  }
+
+  // Update fields
+  if (title) post.title = title;
+  if (content) post.content = content;
+  if (status) post.status = status;
+  if (tags) post.tags = tags;
+
+  await post.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Post updated successfully',
+    data: post
+  });
+};
+
+
+// GET - Public posts (published only) with pagination 
+// /api/posts 
+export const getPosts = async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  
+  const { skip, limit: paginationLimit } = paginate(page, limit);
+  
+  // Get published posts only (public)
+  const posts = await Post.find({ 
+    status: 'published', 
+    deletedAt: null 
+  })
+    .populate('author', 'name email')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(paginationLimit);
+  
+  // Get total count for pagination metadata
+  const total = await Post.countDocuments({ 
+    status: 'published', 
+    deletedAt: null 
+  });
   
   res.status(200).json({
     success: true,
-    data: post
+    data: posts,
+    pagination: {
+      page,
+      limit: paginationLimit,
+      total,
+      totalPages: Math.ceil(total / paginationLimit)
+    }
   });
 };
