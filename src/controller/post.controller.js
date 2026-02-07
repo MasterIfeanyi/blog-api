@@ -72,3 +72,29 @@ export const deletePost = async (req, res, next) => {
     data: {}
   });
 };
+
+export const getPost = async (req, res, next) => {
+  const { id } = req.params;
+  
+  // Try to find by ID first, then by slug
+  let post = await Post.findOne({ _id: id, deletedAt: null })
+    .populate('author', 'name email')
+    .catch(() => null);
+  
+  if (!post) {
+    post = await Post.findOne({ slug: id, deletedAt: null })
+      .populate('author', 'name email');
+  }
+  
+  if (!post) {
+    return res.status(404).json({
+      success: false,
+      message: 'Post not found'
+    });
+  }
+  
+  res.status(200).json({
+    success: true,
+    data: post
+  });
+};
