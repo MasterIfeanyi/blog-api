@@ -14,7 +14,33 @@ const postSchema = new mongoose.Schema({
         ref: 'User',
         required: [true, 'Author is required']
     },
-
+    content: {
+        type: String,
+        required: [true, 'Content is required'],
+        minlength: [10, 'Content must be at least 10 characters long']
+    },
+    status: {
+        type: String,
+        enum: ['draft', 'published'],
+        default: 'draft'
+    },
+    tags: [{
+        type: String,
+        trim: true,
+        lowercase: true
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    }
 })
 
 
