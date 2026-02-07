@@ -93,11 +93,17 @@ export const deletePost = async (req, res, next) => {
 };
 
 
+// GET - Get single published post 
+// /api/posts/:slug 
 export const getPost = async (req, res, next) => {
     
     const { slug } = req.params;  // Not 'id', it's 'slug'
   
-    const post = await Post.findOne({ slug: slug, deletedAt: null })
+    const post = await Post.findOne({ 
+        slug: slug, 
+        status: 'published',
+        deletedAt: null 
+    })
         .populate('author', 'name email');
     
     if (!post) {
