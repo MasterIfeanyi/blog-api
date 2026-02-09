@@ -3,6 +3,12 @@
 A comprehensive RESTful API for a blog platform built with Node.js, Express, and MongoDB. Features include JWT authentication, user authorization, CRUD operations for blog posts, advanced filtering, and soft delete functionality.
 
 
+## Features
+
+- User registration and login with JWT
+- Create, read, update, and delete blog posts
+- Draft and published post states
+
 ## 🛠 Tech Stack
 
 - **Runtime**: `Node.js`
